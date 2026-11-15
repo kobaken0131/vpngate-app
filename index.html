@@ -3,437 +3,589 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VPN Gate 日本一般回線ファインダー</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>日本VPN 動画視聴快適度ファインダー</title>
   <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --orange: #f97316;
+      --red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background-color: #0f172a;
-      color: #f8fafc;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
+      max-width: 960px;
+      margin: 0 auto;
     }
-    button:focus, select:focus, input:focus, textarea:focus, a:focus {
-      outline: 3px solid #facc15 !important;
-      outline-offset: 2px !important;
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
     }
+
+    header h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card);
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 16px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    select, button.refresh-btn {
+      background: #0f172a;
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    button.refresh-btn {
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 700;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    button.refresh-btn:hover {
+      background: var(--accent-hover);
+      color: #fff;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      padding: 0 4px;
+    }
+
+    .server-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .card.top-rank {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .rank-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .rank-badge {
+      background: #334155;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+
+    .rank-badge.gold { background: #eab308; color: #0f172a; }
+    .rank-badge.silver { background: #cbd5e1; color: #0f172a; }
+    .rank-badge.bronze { background: #d97706; color: #fff; }
+
+    .ip-address {
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .score-box {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .score-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .score-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric-item .m-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .metric-item .m-val {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .host-info {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      word-break: break-all;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+
+    .btn-download {
+      background: var(--green);
+      color: #052e16;
+    }
+
+    .btn-copy {
+      background: #334155;
+      color: var(--text);
+    }
+
+    .loading, .error-box {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+    }
+
+    .error-box { color: var(--red); }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--green);
+      color: #052e16;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      z-index: 999;
+    }
+
+    .toast.show { opacity: 1; }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-6">
-  <div class="max-w-5xl mx-auto space-y-5">
+<body>
 
-    <!-- ヘッダー -->
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/90 border border-slate-700 p-4 rounded-2xl shadow-lg">
-      <div>
-        <h1 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full bg-emerald-400"></span>
-          VPN Gate 日本一般回線ファインダー
-        </h1>
-        <p class="text-xs md:text-sm text-slate-400 mt-1">
-          稼働時間が短く、一般プロバイダ（NTT / KDDI / SoftBank / NURO等）と判定された日本サーバーを自動抽出します
-        </p>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <button id="btnReload" onclick="loadServers()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition shadow">
-          🔄 最新リストを再取得
-        </button>
-        <button onclick="toggleManualModal(true)" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl text-sm transition">
-          📋 CSV手動貼り付け
-        </button>
-      </div>
-    </header>
+  <header>
+    <h1>🇯🇵 日本VPN 動画視聴快適度ファインダー</h1>
+    <p>回線速度（Mbps）・応答速度（Ping）・空き具合からストリーミングに強い日本サーバーを自動選出</p>
+  </header>
 
-    <!-- ステータスバー -->
-    <div id="statusBox" class="bg-slate-800 border border-slate-700 rounded-xl p-3.5 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-        <span id="statusText" class="text-slate-200">サーバーリストを取得準備中...</span>
-      </div>
-      <div id="statsText" class="text-xs text-slate-400 font-mono"></div>
+  <div class="controls">
+    <div class="control-group">
+      <label for="sortSelect">並び替え:</label>
+      <select id="sortSelect" onchange="renderServers()">
+        <option value="score">🏆 動画快適スコア順（総合）</option>
+        <option value="speed">🚀 回線速度順（Mbps）</option>
+        <option value="ping">⚡ 低Ping順（応答が速い）</option>
+        <option value="sessions">👥 空き具合順（利用者少）</option>
+      </select>
+
+      <label for="minSpeedSelect">最低速度:</label>
+      <select id="minSpeedSelect" onchange="renderServers()">
+        <option value="0">すべて表示</option>
+        <option value="30">30 Mbps以上（HD画質目安）</option>
+        <option value="80" selected>80 Mbps以上（4K・高画質目安）</option>
+        <option value="150">150 Mbps以上（超高速回線）</option>
+      </select>
     </div>
 
-    <!-- フィルターコントロール -->
-    <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <span class="text-sm font-semibold text-slate-300">⏱ 最大稼働時間（Uptime）で絞り込み</span>
-        <button onclick="resetFilters()" class="text-xs text-indigo-400 hover:underline">条件をリセット</button>
-      </div>
-
-      <div class="flex flex-wrap gap-2" id="uptimePills">
-        <button data-hours="1" onclick="setUptimeFilter(1)" class="uptime-btn px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-700 text-slate-200 hover:bg-slate-600">1時間以内</button>
-        <button data-hours="6" onclick="setUptimeFilter(6)" class="uptime-btn px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-700 text-slate-200 hover:bg-slate-600">6時間以内</button>
-        <button data-hours="24" onclick="setUptimeFilter(24)" class="uptime-btn px-3.5 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white">24時間以内</button>
-        <button data-hours="72" onclick="setUptimeFilter(72)" class="uptime-btn px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-700 text-slate-200 hover:bg-slate-600">72時間以内</button>
-        <button data-hours="999999" onclick="setUptimeFilter(999999)" class="uptime-btn px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-700 text-slate-200 hover:bg-slate-600">すべて</button>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-        <label class="flex items-center gap-2.5 bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 cursor-pointer">
-          <input type="checkbox" id="chkResidentialOnly" checked onchange="renderList()" class="w-5 h-5 rounded accent-indigo-500" />
-          <span class="text-sm text-slate-200">一般ISP回線のみ表示（データセンター除外）</span>
-        </label>
-
-        <div class="flex items-center justify-between bg-slate-900/60 p-3 rounded-xl border border-slate-700/80">
-          <span class="text-sm text-slate-300">最低速度 (Mbps):</span>
-          <select id="selMinSpeed" onchange="renderList()" class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1 text-sm text-white">
-            <option value="0">指定なし</option>
-            <option value="5">5 Mbps以上</option>
-            <option value="10" selected>10 Mbps以上</option>
-            <option value="30">30 Mbps以上</option>
-            <option value="50">50 Mbps以上</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- サーバー一覧 -->
-    <main id="serverList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></main>
-
-    <!-- プライムビデオ視聴のコツ -->
-    <footer class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 text-xs md:text-sm text-slate-300 space-y-2">
-      <div class="font-bold text-amber-300">💡 プライムビデオ視聴時のポイント</div>
-      <ul class="list-disc list-inside space-y-1 text-slate-400">
-        <li>稼働時間が短い（数分〜数時間）一般回線ほど、Amazon側のIPブラックリストに未登録の確率が高くなります。</li>
-        <li>接続後にエラーが出る場合は、ブラウザのシークレットモードで開くか、Prime Videoアプリのキャッシュ消去をお試しください。</li>
-        <li>L2TP/IPsecで手動接続する場合の共通情報：ユーザー名 <code class="text-white bg-slate-900 px-1.5 py-0.5 rounded">vpn</code> / パスワード <code class="text-white bg-slate-900 px-1.5 py-0.5 rounded">vpn</code> / 事前共有鍵 <code class="text-white bg-slate-900 px-1.5 py-0.5 rounded">vpn</code></li>
-      </ul>
-    </footer>
+    <button class="refresh-btn" onclick="fetchServers()">🔄 最新リストを取得</button>
   </div>
 
-  <!-- CSV手動貼り付けモーダル -->
-  <div id="manualModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-600 rounded-2xl max-w-xl w-full p-5 space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold text-white">CSVデータを手動貼り付け</h2>
-        <button onclick="toggleManualModal(false)" class="text-slate-400 hover:text-white text-xl px-2">✕</button>
-      </div>
-      <p class="text-xs text-slate-300">
-        VPN Gateの <code class="text-indigo-300">/api/iphone/</code> からコピーしたテキストを貼り付けてください。
-      </p>
-      <textarea id="manualCsvInput" rows="7" placeholder="*vpn_servers&#10;#HostName,IP,Score,Ping,Speed,CountryLong,CountryShort..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs font-mono text-slate-200"></textarea>
-      <div class="flex justify-end gap-2">
-        <button onclick="toggleManualModal(false)" class="px-4 py-2 bg-slate-700 rounded-xl text-sm">キャンセル</button>
-        <button onclick="parseManualCsv()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm">解析する</button>
-      </div>
-    </div>
+  <div class="status-bar">
+    <span id="countText">読み込み中...</span>
+    <span id="updateTime"></span>
   </div>
 
-  <!-- トースト通知 -->
-  <div id="toast" class="hidden fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-xl text-sm font-semibold z-50"></div>
+  <div id="serverList" class="server-list">
+    <div class="loading">日本のVPNサーバー情報を取得・計測中...</div>
+  </div>
+
+  <div id="toast" class="toast">コピーしました</div>
 
   <script>
-    let allServers = [];
-    let maxUptimeHours = 24;
+    let allJapanServers = [];
 
-    const DATACENTER_KEYWORDS = [
-      "amazon", "aws", "sakura", "conoha", "gmo", "linode", "akamai",
-      "vultr", "digitalocean", "google", "microsoft", "azure", "oracle",
-      "ovh", "alibaba", "tencent", "hosting", "datacenter", "vps", "cloud", "idc", "server"
-    ];
+    // 動画視聴快適度スコア（100点満点）を計算
+    function calculateVideoScore(speedMbps, pingMs, sessions) {
+      // 1. 速度スコア（最大50点: 200Mbps以上で満点）
+      const speedScore = Math.min(50, (speedMbps / 200) * 50);
 
-    const RESIDENTIAL_ISP_KEYWORDS = [
-      "ntt", "ocn", "kddi", "au-net", "softbank", "bbtec", "biglobe",
-      "so-net", "nifty", "jcom", "zaq", "nuro", "eonet", "commufa",
-      "pikara", "bbiq", "plala", "dti", "asahi-net", "iij", "vectant",
-      "wakwak", "hi-ho", "mesh", "home", "bb", "fiber", "ftth", "catv", "itscom", "tokai"
-    ];
-
-    function updateStatus(text, type = "loading") {
-      const statusText = document.getElementById("statusText");
-      const statusDot = document.getElementById("statusDot");
-      statusText.textContent = text;
-      statusDot.className = "w-2.5 h-2.5 rounded-full ";
-      if (type === "loading") statusDot.className += "bg-amber-400 animate-pulse";
-      else if (type === "ok") statusDot.className += "bg-emerald-400";
-      else statusDot.className += "bg-rose-400";
-    }
-
-    function showToast(msg) {
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.classList.remove("hidden");
-      setTimeout(() => t.classList.add("hidden"), 2500);
-    }
-
-    function copyText(text, label = "コピーしました") {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => showToast(`${label}: ${text}`)).catch(() => fallbackCopy(text, label));
+      // 2. Pingスコア（最大30点: 15ms以下で満点、150ms以上で0点）
+      let pingScore = 0;
+      if (pingMs > 0) {
+        if (pingMs <= 15) pingScore = 30;
+        else if (pingMs >= 150) pingScore = 0;
+        else pingScore = Math.max(0, 30 * (1 - (pingMs - 15) / 135));
       } else {
-        fallbackCopy(text, label);
+        pingScore = 15; // Ping不明時は中間点
       }
+
+      // 3. 空き具合スコア（最大20点: セッション数0で満点、100以上で0点）
+      const sessionScore = Math.max(0, 20 * (1 - Math.min(sessions, 100) / 100));
+
+      return Math.round(speedScore + pingScore + sessionScore);
     }
 
-    function fallbackCopy(text, label) {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      showToast(`${label}: ${text}`);
+    // 稼働時間を読みやすい表記に変換
+    function formatUptime(ms) {
+      if (!ms || ms <= 0) return "不明";
+      const mins = Math.floor(ms / 60000);
+      if (mins < 60) return `${mins}分`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}時間`;
+      const days = Math.floor(hours / 24);
+      return `${days}日${hours % 24}時間`;
     }
 
-    function toggleManualModal(show) {
-      document.getElementById("manualModal").classList.toggle("hidden", !show);
-    }
-
-    function setUptimeFilter(hours) {
-      maxUptimeHours = hours;
-      document.querySelectorAll(".uptime-btn").forEach(btn => {
-        const h = Number(btn.dataset.hours);
-        if (h === hours) {
-          btn.className = "uptime-btn px-3.5 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white";
+    // CSVパース（クォート対応）
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current);
+          current = '';
         } else {
-          btn.className = "uptime-btn px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-700 text-slate-200 hover:bg-slate-600";
+          current += char;
         }
+      }
+      result.push(current);
+      return result;
+    }
+
+    async function fetchServers() {
+      const listEl = document.getElementById('serverList');
+      const countEl = document.getElementById('countText');
+      listEl.innerHTML = '<div class="loading">最新の日本サーバーを取得中...</div>';
+      countEl.textContent = '通信中...';
+
+      try {
+        const res = await fetch('/.netlify/functions/vpngate');
+        if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
+        const csvText = await res.text();
+
+        const lines = csvText.split(/\r?\n/);
+        const servers = [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line || line.startsWith('*') || line.startsWith('#HostName')) continue;
+
+          const cols = parseCSVLine(line);
+          if (cols.length < 15) continue;
+
+          const countryShort = cols[6];
+          if (countryShort !== 'JP') continue;
+
+          const ovpnBase64 = cols[14];
+          if (!ovpnBase64 || ovpnBase64.length < 50) continue;
+
+          const hostName = cols[0];
+          const ip = cols[1];
+          const ping = parseInt(cols[3], 10) || 999;
+          const speedBps = parseInt(cols[4], 10) || 0;
+          const speedMbps = Math.round((speedBps / 1000000) * 10) / 10;
+          const sessions = parseInt(cols[7], 10) || 0;
+          const uptimeMs = parseInt(cols[8], 10) || 0;
+          const operator = cols[12] || '不明';
+
+          const videoScore = calculateVideoScore(speedMbps, ping, sessions);
+
+          servers.push({
+            hostName,
+            ip,
+            ping,
+            speedMbps,
+            sessions,
+            uptimeMs,
+            operator,
+            ovpnBase64,
+            videoScore
+          });
+        }
+
+        allJapanServers = servers;
+        const now = new Date();
+        document.getElementById('updateTime').textContent =
+          `最終更新: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+        renderServers();
+      } catch (err) {
+        listEl.innerHTML = `<div class="error-box">データの取得に失敗しました。<br><small>${err.message}</small></div>`;
+        countEl.textContent = '取得エラー';
+      }
+    }
+
+    function renderServers() {
+      const sortBy = document.getElementById('sortSelect').value;
+      const minSpeed = parseFloat(document.getElementById('minSpeedSelect').value) || 0;
+      const listEl = document.getElementById('serverList');
+      const countEl = document.getElementById('countText');
+
+      let filtered = allJapanServers.filter(s => s.speedMbps >= minSpeed);
+
+      // 最低速度フィルタで0件になった場合は自動で全件表示にフォールバック
+      if (filtered.length === 0 && allJapanServers.length > 0 && minSpeed > 0) {
+        document.getElementById('minSpeedSelect').value = "0";
+        filtered = [...allJapanServers];
+      }
+
+      filtered.sort((a, b) => {
+        if (sortBy === 'score') return b.videoScore - a.videoScore;
+        if (sortBy === 'speed') return b.speedMbps - a.speedMbps;
+        if (sortBy === 'ping') return a.ping - b.ping;
+        if (sortBy === 'sessions') return a.sessions - b.sessions;
+        return 0;
       });
-      renderList();
-    }
 
-    function resetFilters() {
-      document.getElementById("chkResidentialOnly").checked = false;
-      document.getElementById("selMinSpeed").value = "0";
-      setUptimeFilter(999999);
-    }
+      countEl.textContent = `表示中: ${filtered.length}台（日本サーバー全${allJapanServers.length}台中）`;
 
-    async function fetchCsvWithProxies() {
-      // 1. 同じNetlifyサーバー内の専用Functionを最優先で試行
-      try {
-        updateStatus("専用中継サーバー経由でVPN Gate最新リストを取得中...", "loading");
-        const localRes = await fetch(`/.netlify/functions/vpngate?t=${Date.now()}`);
-        if (localRes.ok) {
-          const localText = await localRes.text();
-          if (localText && localText.includes("#HostName") && localText.includes("CountryShort")) {
-            return { text: localText, source: "Netlify専用中継サーバー" };
-          }
-        }
-      } catch (e) {
-        // フォールバックへ進む
-      }
-
-      // 2. 公開CORSプロキシへのフォールバック
-      const targetUrl = "https://www.vpngate.net/api/iphone/";
-      const proxies = [
-        { name: "AllOrigins", url: `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}` },
-        { name: "CorsProxy", url: `https://corsproxy.io/?${encodeURIComponent(targetUrl)}` },
-        { name: "CodeTabs", url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}` }
-      ];
-
-      for (const p of proxies) {
-        try {
-          updateStatus(`中継ルート (${p.name}) で取得を試行中...`, "loading");
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 8000);
-          const res = await fetch(p.url, { signal: controller.signal });
-          clearTimeout(timer);
-          if (res.ok) {
-            const text = await res.text();
-            if (text && text.includes("#HostName") && text.includes("CountryShort")) {
-              return { text, source: p.name };
-            }
-          }
-        } catch (err) {}
-      }
-      throw new Error("すべての取得ルートがブロックされました");
-    }
-
-    async function resolvePtr(ip) {
-      const parts = ip.split(".");
-      if (parts.length !== 4) return "";
-      const rev = `${parts[3]}.${parts[2]}.${parts[1]}.${parts[0]}.in-addr.arpa`;
-      try {
-        const res = await fetch(`https://dns.google/resolve?name=${rev}&type=PTR`);
-        if (!res.ok) return "";
-        const data = await res.json();
-        if (data.Answer && data.Answer.length > 0) {
-          return data.Answer[0].data.replace(/\.$/, "").toLowerCase();
-        }
-      } catch (e) {}
-      return "";
-    }
-
-    function parseCsvText(csvText) {
-      const lines = csvText.split(/\r?\n/).filter(l => l.trim() && !l.startsWith("*"));
-      if (lines.length < 2) return [];
-      const headers = lines[0].replace(/^#/, "").split(",");
-      const servers = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(",");
-        if (cols.length < headers.length) continue;
-        const row = {};
-        headers.forEach((h, idx) => row[h.trim()] = (cols[idx] || "").trim());
-
-        if (row.CountryShort !== "JP") continue;
-        const uptimeMs = parseInt(row.Uptime || "0", 10);
-        const speedBps = parseInt(row.Speed || "0", 10);
-
-        servers.push({
-          hostName: row.HostName || "",
-          ip: row.IP || "",
-          ping: row.Ping || "-",
-          speedMbps: Math.round((speedBps / 1000000) * 10) / 10,
-          uptimeHours: Math.round((uptimeMs / (1000 * 3600)) * 100) / 100,
-          sessions: row.NumVpnSessions || "0",
-          operator: row.Operator || "",
-          ovpnBase64: row.OpenVPN_ConfigData_Base64 || "",
-          ptr: "",
-          ispType: "checking" // residential | datacenter | unknown
-        });
-      }
-      return servers;
-    }
-
-    function classifyServer(s) {
-      const target = `${s.operator} ${s.hostName} ${s.ptr}`.toLowerCase();
-      if (DATACENTER_KEYWORDS.some(k => target.includes(k))) {
-        s.ispType = "datacenter";
-      } else if (RESIDENTIAL_ISP_KEYWORDS.some(k => target.includes(k))) {
-        s.ispType = "residential";
-      } else {
-        s.ispType = "unknown";
-      }
-    }
-
-    async function enrichWithPtr(servers) {
-      updateStatus(`日本サーバー ${servers.length}件 のプロバイダ(ISP)を逆引き判定中...`, "loading");
-      const batchSize = 10;
-      for (let i = 0; i < servers.length; i += batchSize) {
-        const batch = servers.slice(i, i + batchSize);
-        await Promise.all(batch.map(async s => {
-          s.ptr = await resolvePtr(s.ip);
-          classifyServer(s);
-        }));
-        renderList();
-      }
-    }
-
-    function downloadOvpn(ip, uptimeHours, base64Data) {
-      if (!base64Data) {
-        showToast("OpenVPN設定データが含まれていません");
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="loading">条件に一致する日本サーバーが見つかりませんでした。</div>';
         return;
       }
+
+      listEl.innerHTML = filtered.map((s, idx) => {
+        const rank = idx + 1;
+        let rankClass = '';
+        if (rank === 1) rankClass = 'gold';
+        else if (rank === 2) rankClass = 'silver';
+        else if (rank === 3) rankClass = 'bronze';
+
+        let scoreColor = 'var(--green)';
+        if (s.videoScore < 50) scoreColor = 'var(--orange)';
+        else if (s.videoScore < 75) scoreColor = 'var(--yellow)';
+
+        const pingDisplay = s.ping >= 999 ? '計測外' : `${s.ping} ms`;
+        const speedColor = s.speedMbps >= 100 ? 'var(--green)' : (s.speedMbps >= 40 ? 'var(--text)' : 'var(--orange)');
+
+        return `
+          <div class="card ${rank <= 3 ? 'top-rank' : ''}">
+            <div class="card-header">
+              <div class="rank-title">
+                <span class="rank-badge ${rankClass}">#${rank}</span>
+                <span class="ip-address">${s.ip}</span>
+              </div>
+              <div class="score-box">
+                <div class="score-value" style="color: ${scoreColor};">${s.videoScore}<span style="font-size:0.75rem;">点</span></div>
+                <div class="score-label">動画快適スコア</div>
+              </div>
+            </div>
+
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="m-label">🚀 回線速度</div>
+                <div class="m-val" style="color: ${speedColor};">${s.speedMbps} Mbps</div>
+              </div>
+              <div class="metric-item">
+                <div class="m-label">⚡ 応答速度 (Ping)</div>
+                <div class="m-val">${pingDisplay}</div>
+              </div>
+              <div class="metric-item">
+                <div class="m-label">👥 接続人数</div>
+                <div class="m-val">${s.sessions} 人</div>
+              </div>
+              <div class="metric-item">
+                <div class="m-label">⏱️ 連続稼働</div>
+                <div class="m-val">${formatUptime(s.uptimeMs)}</div>
+              </div>
+            </div>
+
+            <div class="host-info">
+              ホスト: ${s.hostName}.opengw.net ／ 運営: ${escapeHtml(s.operator)}
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-download" onclick="downloadOvpn('${s.ip}', '${s.ovpnBase64}')">
+                📥 .ovpn ダウンロード
+              </button>
+              <button class="btn btn-copy" onclick="copyText('${s.ip}')">
+                📋 IPコピー
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    function downloadOvpn(ip, base64Data) {
       try {
-        const decoded = atob(base64Data);
-        const blob = new Blob([decoded], { type: "application/x-openvpn-profile" });
+        const binaryStr = atob(base64Data);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/x-openvpn-profile' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `JP_${ip}_${uptimeHours}h.ovpn`;
+        a.download = `JP_VPN_${ip.replace(/\./g, '_')}.ovpn`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast(`ダウンロード開始: JP_${ip}_${uptimeHours}h.ovpn`);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        showToast(`${ip} の .ovpn を保存しました`);
       } catch (e) {
-        showToast("ファイルの生成に失敗しました");
+        alert('ファイルの生成に失敗しました: ' + e.message);
       }
     }
 
-    function renderList() {
-      const container = document.getElementById("serverList");
-      const onlyRes = document.getElementById("chkResidentialOnly").checked;
-      const minSpeed = Number(document.getElementById("selMinSpeed").value);
-
-      const filtered = allServers
-        .filter(s => s.uptimeHours <= maxUptimeHours)
-        .filter(s => s.speedMbps >= minSpeed)
-        .filter(s => !onlyRes || s.ispType === "residential")
-        .sort((a, b) => a.uptimeHours - b.uptimeHours);
-
-      const resCount = allServers.filter(s => s.ispType === "residential").length;
-      document.getElementById("statsText").textContent =
-        `JP総数: ${allServers.length}件 | 一般ISP: ${resCount}件 | 表示中: ${filtered.length}件`;
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full bg-slate-800/70 border border-slate-700 rounded-2xl p-8 text-center space-y-3">
-            <p class="text-slate-300 font-semibold">条件に一致するサーバーが見つかりませんでした</p>
-            <p class="text-xs text-slate-400">「最大稼働時間」を広げるか、「一般ISP回線のみ表示」のチェックを外してお試しください。</p>
-            <button onclick="resetFilters()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold">条件をリセットして全表示</button>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(s => {
-        const isNew = s.uptimeHours <= 3;
-        const badgeHtml = s.ispType === "residential"
-          ? `<span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">★ 一般ISP回線</span>`
-          : s.ispType === "datacenter"
-          ? `<span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">データセンター系</span>`
-          : `<span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-slate-700 text-slate-300">不明 / その他</span>`;
-
-        const newBadge = isNew
-          ? `<span class="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">NEW</span>`
-          : "";
-
-        return `
-          <article class="bg-slate-800 border border-slate-700 hover:border-indigo-500/60 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow transition">
-            <div class="space-y-2">
-              <div class="flex items-center justify-between gap-2 flex-wrap">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  ${badgeHtml}
-                  ${newBadge}
-                </div>
-                <span class="text-xs font-mono text-slate-400">稼働: <strong class="text-white text-sm">${s.uptimeHours}時間</strong></span>
-              </div>
-
-              <div class="flex items-baseline justify-between gap-2">
-                <div class="text-lg font-mono font-bold text-white tracking-wide">${s.ip}</div>
-                <div class="text-sm font-semibold text-sky-300">${s.speedMbps} Mbps</div>
-              </div>
-
-              <div class="text-xs text-slate-400 break-all bg-slate-900/70 p-2 rounded-lg font-mono">
-                ${s.ptr ? s.ptr : "(逆引きホスト名なし)"}
-              </div>
-              <div class="text-xs text-slate-400 flex justify-between">
-                <span>運営: ${s.operator || "匿名"}</span>
-                <span>Ping: ${s.ping}ms / セッション: ${s.sessions}</span>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-1">
-              <button onclick="copyText('${s.ip}', 'IPアドレスをコピー')" class="py-2 px-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-semibold transition">
-                📋 IPをコピー
-              </button>
-              <button onclick="downloadOvpn('${s.ip}', '${s.uptimeHours}', '${s.ovpnBase64}')" class="py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">
-                📥 .ovpn 取得
-              </button>
-            </div>
-          </article>
-        `;
-      }).join("");
-    }
-
-    async function loadServers() {
-      try {
-        const { text, source } = await fetchCsvWithProxies();
-        allServers = parseCsvText(text);
-        allServers.forEach(classifyServer);
-        renderList();
-        await enrichWithPtr(allServers);
-        updateStatus(`取得完了（経由: ${source}）`, "ok");
-      } catch (err) {
-        updateStatus("外部APIへの接続に失敗しました。「CSV手動貼り付け」も利用できます。", "error");
-        renderList();
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(`IPアドレス (${text}) をコピーしました`));
+      } else {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast(`IPアドレス (${text}) をコピーしました`);
       }
     }
 
-    function parseManualCsv() {
-      const raw = document.getElementById("manualCsvInput").value;
-      const parsed = parseCsvText(raw);
-      if (parsed.length === 0) {
-        showToast("有効な日本サーバーデータが見つかりませんでした");
-        return;
-      }
-      allServers = parsed;
-      allServers.forEach(classifyServer);
-      toggleManualModal(false);
-      renderList();
-      enrichWithPtr(allServers).then(() => {
-        updateStatus("手動貼り付けデータの解析が完了しました", "ok");
-      });
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    window.addEventListener("DOMContentLoaded", loadServers);
+    // 初回読み込み
+    fetchServers();
   </script>
 </body>
 </html>
